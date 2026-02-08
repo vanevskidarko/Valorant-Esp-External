@@ -1,0 +1,231 @@
+#include "camera.h"
+
+namespace cheat {
+
+    camera_c camera;
+
+    void camera_c::update()
+    {
+        const auto& world = g->game.get_context().world;
+        if (!g->memory.valid(world)) {
+            return;
+        }
+
+        static uintptr_t view_info_offset = offsets::world().CachedViewInfoRenderedLastFrame;
+
+        if (this->m_data_timer.elapsed(std::chrono::milliseconds(1000)) ||
+            !this->m_cached_view_info.has_data())
+        {
+            this->m_cached_view_info =
+                g->memory.read<engine::tarray<engine::world_cached_view_info>>(
+                    world + view_info_offset
+                );
+        }
+
+        if (!this->m_cached_view_info.has_data()) {
+            return;
+        }
+
+        static_cast<engine::world_cached_view_info&>(*this) =
+            this->m_cached_view_info.fetch_member(0);
+
+        this->m_world_to_clip = this->view_projection_matrix.to_simd();
+        this->m_location = this->compute_location();
+    }
+
+    math::vector2f camera_c::world_to_screen(
+        const math::vector3d& world_position) const noexcept
+    {
+        if (world_position.is_zero()) {
+            return {};
+        }
+
+        const auto clip_space = this->m_world_to_clip.transform(world_position);
+        if (clip_space.w <= 0.0) {
+            return {};
+        }
+
+        const auto rhw = 1.0 / clip_space.w;
+
+        return {
+            static_cast<float>((clip_space.x * rhw + 1.0) * 0.5 * g->screen.width),
+            static_cast<float>((1.0 - clip_space.y * rhw) * 0.5 * g->screen.height)
+        };
+    }
+
+    math::vector3d camera_c::compute_location() const noexcept
+    {
+        const auto& m = this->view_to_world;
+        return {
+            m[3][0],
+            m[3][1],
+            m[3][2]
+        };
+    }
+
+    math::rotator2d camera_c::compute_rotation() const noexcept
+    {
+        const auto& m = this->view_to_world;
+
+        const auto pitch = std::asin(m[2][2]);
+        const auto yaw   = std::atan2(m[2][1], m[2][0]);
+
+        return {
+            static_cast<float>(pitch * math::rad_to_deg),
+            static_cast<float>(yaw   * math::rad_to_deg)
+        };
+    }
+
+    float camera_c::compute_horizontal_fov() const noexcept
+    {
+        const auto& m = this->projection_matrix.m;
+        return static_cast<float>(
+            2.0f * std::atan(1.0f / m[0][0]) * math::rad_to_deg
+        );
+    }
+
+    float camera_c::compute_vertical_fov() const noexcept
+    {
+        const auto& m = this->projection_matrix.m;
+        return static_cast<float>(
+            2.0f * std::atan(1.0f / m[1][1]) * math::rad_to_deg
+        );
+    }
+
+} // namespace cheat
+
+
+#pragma once
+#include "../math.h"
+#include "../../../global.h"
+#include <chrono>
+#include "../sdk.h"
+
+namespace cheat {
+
+    class camera_c : public engine::world_cached_view_info {
+    public:
+        engine::tarray<engine::world_cached_view_info> m_cached_view_info;
+        
+        math::matrix4_simd m_world_to_clip; 
+        math::vector3d m_location;
+
+        struct {
+            std::chrono::steady_clock::time_point last_update;
+            bool elapsed(std::chrono::milliseconds ms) {
+                auto now = std::chrono::steady_clock::now();
+                if (now - last_update > ms) {
+                    last_update = now;
+                    return true;
+                }
+                return false;
+            }
+        } m_data_timer;
+
+        void update();
+        math::vector2f world_to_screen(const math::vector3d& world_position) const noexcept;
+        math::vector3d compute_location() const noexcept;
+        math::rotator2d compute_rotation() const noexcept;
+        float compute_horizontal_fov() const noexcept;
+        float compute_vertical_fov() const noexcept;
+    };
+    
+    extern camera_c camera;
+}
+
+#pragma once
+#include <Windows.h>
+#include <iostream>
+#include <numbers>
+#include <cmath>
+#include <algorithm>
+#include <immintrin.h>
+
+#ifndef MAX
+#define MAX(a,b) (((a)>(b))?(a):(b))
+#endif
+
+namespace math {
+
+    static constexpr double rad_to_deg{ 180.0 / std::numbers::pi };
+    static constexpr double deg_to_rad{ std::numbers::pi / 180.0 };
+
+    namespace m {
+
+        template<typename t> concept floating = std::floating_point<t>;
+
+        template<typename t>
+        struct vec2
+        {
+            t x, y;
+        };
+
+        template<typename t>
+        struct vec3
+        {
+            t x, y, z;
+
+            bool is_zero() const { return x == 0 && y == 0 && z == 0; }
+            bool is_zero_epsilon(t epsilon = 0.001) const { 
+                return std::abs(x) < epsilon && std::abs(y) < epsilon && std::abs(z) < epsilon; 
+            }
+        };
+
+        template<typename t>
+        struct vec4
+        {
+            t x, y, z, w;
+        };
+
+        struct smat4_f64
+        {
+            __m256d col0, col1, col2, col3;
+
+            [[nodiscard]] vec4<double> transform(const vec3<double>& v) const noexcept
+            {
+                const __m256d vx = _mm256_set1_pd(v.x);
+                const __m256d vy = _mm256_set1_pd(v.y);
+                const __m256d vz = _mm256_set1_pd(v.z);
+
+                __m256d result = _mm256_mul_pd(vx, this->col0);
+                result = _mm256_fmadd_pd(vy, this->col1, result);
+                result = _mm256_fmadd_pd(vz, this->col2, result);
+                result = _mm256_add_pd(result, this->col3);
+
+                vec4<double> out;
+                _mm256_storeu_pd(reinterpret_cast<double*>(&out), result);
+                return out;
+            }
+        };
+
+        template<floating t>
+        struct alignas(sizeof(t) * 4) mat4
+        {
+            t m[4][4]{};
+
+            [[nodiscard]] constexpr t* operator[](const std::size_t i) noexcept { return this->m[i]; }
+            [[nodiscard]] constexpr const t* operator[](const std::size_t i) const noexcept { return this->m[i]; }
+
+            [[nodiscard]] constexpr auto to_simd() const noexcept
+            {
+
+                return smat4_f64
+                {
+                    _mm256_loadu_pd(&this->m[0][0]),
+                    _mm256_loadu_pd(&this->m[1][0]),
+                    _mm256_loadu_pd(&this->m[2][0]),
+                    _mm256_loadu_pd(&this->m[3][0])
+                };
+            }
+        };
+
+    } // namespace m
+
+    using matrix4_simd = m::smat4_f64;
+    using matrix4 = m::mat4<double>;
+    using vector2f = m::vec2<float>;
+    using vector3d = m::vec3<double>;
+    using Vector3 = m::vec3<double>;
+    using rotator2d = m::vec2<double>;
+
+} // namespace math

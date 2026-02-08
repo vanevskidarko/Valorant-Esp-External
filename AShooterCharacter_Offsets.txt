@@ -1,0 +1,193 @@
+================================================================================
+AShooterCharacter Class Structure and Offsets
+Extracted from ShooterGame.h SDK
+================================================================================
+
+CLASS SIZE: 0x1520 (5408 bytes)
+Base offset range: 0x000858 - 0x001520
+
+================================================================================
+KEY OFFSETS FOR ESP/HACKING
+================================================================================
+
+MESH COMPONENTS (IMPORTANT FOR RENDERING):
+  Mesh1P (First-person view mesh)         = 0x0F30
+  MeshOverlay1P (First-person overlay)    = 0x0F38
+  MeshCosmetic3P (Third-person cosmetic)  = 0x0F40 *** PRIMARY ESP TARGET ***
+  MeshMaterialManager                     = 0x0F48
+
+ANIMATION & SKELETAL DATA:
+  Mesh1PDefaultSkeletalMeshInfo           = 0x1450
+  MeshOverlay1PDefaultSkeletalMeshInfo    = 0x1468
+  MeshCosmetic3PDefaultSkeletalMeshInfo   = 0x1480
+  CurMeshDefaultSkeletalMeshInfo          = 0x1498
+
+DAMAGE & HEALTH:
+  DamageHandler                           = 0x0C68
+  DeathReactionComponent                  = 0x0CA8
+  
+MATERIAL IDS:
+  Mesh3PMIDs                              = 0x0F88
+  Mesh1PMIDs                              = 0x0F98
+  Mesh1POverlayMIDs                       = 0x0FA8
+  Baked3PMaterial                         = 0x11C8
+  Baked1PMaterial                         = 0x11D0
+
+INVENTORY & EQUIPMENT:
+  Inventory                               = 0x0C08
+  StartingEquippables                     = 0x0BC0
+  StartingEquippableClasses               = 0x0BD8
+  StartingPurchasableAssets               = 0x0BE8
+  CharacterPurchasables                   = 0x1178
+
+ABILITIES & BUFFS:
+  AbilitiesAndBuffs                       = 0x0A20
+  AbilityUIOrder                          = 0x0B70
+  AbilityHUDWidget                        = 0x0B90
+  AbilityHUDWidgetTemplate                = 0x0B98
+
+COMPONENTS (GAME MECHANICS):
+  BlindManagerComponent                   = 0x0A28
+  VisibleInLevelGeometryOnlyViewModeComponent = 0x0A30
+  FogOfWarComponent                       = 0x0A68
+  VisionComponent                         = 0x0A70
+  FootstepsComponent                      = 0x0A78
+  CalloutRegionTrackingComponent          = 0x0A80
+  DynamicBlocking                         = 0x0A88
+  FresnelComponent                        = 0x0A98
+  PlaybackInputsComponent                 = 0x0B50
+  RecordInputsComponent                   = 0x0B58
+  InputStateComponent                     = 0x0BA0
+  NetworkStreamComponent                  = 0x0BA8
+  EquippableEventComponent                = 0x0BB0
+  PlayspaceComponent                      = 0x0BB8
+  StealthComponent                        = 0x1108
+  ForceModuleManager                      = 0x1100
+
+CAMERA & VIEW:
+  Camera3PSettings                        = 0x126C
+  FollowRecoilCameraComponent             = 0x12A0
+  CustomActiveCameraComponent             = 0x12A8
+  DeathCameraSpringArm                    = 0x12B8
+  DeathCameraComponent                    = 0x12C0
+  DeathCameraComponentOverride            = 0x12C8
+  DebugCameraMode                         = 0x12F0
+  DeathCameraSettings                     = 0x12F8
+
+ANIMATION & STATE:
+  AuthLastPlayerInputTimestamp            = 0x0B60
+  CacheState                              = 0x1298
+  AnimationStateComponent                 = 0x0390 (in UShooterCharacterAnimInstance)
+
+NETWORKING & REPLICATION:
+  AuthPrevRemoteRole                      = 0x0A38
+  Persistence                             = 0x0A18
+  ReplicationSleepComponent               = 0x1260
+  CombatReportTrackingConfig              = 0x1258
+
+LOCATION & TRANSFORM:
+  OldCachedLocation                       = 0x1240
+  FacingControlRotation                   = 0x1160
+
+CHARACTER DATA:
+  DataAsset                               = 0x13D8
+  CharacterScaleData                      = 0x1140
+  ScavengableCharacter                    = 0x1158
+
+SKELETAL & BONE DATA:
+  HeadDamageBoneNames                     = 0x11A0
+  LegDamageBoneNames                      = 0x11B0
+  LeftHandFarBoneName                     = 0x0FFC
+  RightHandWeaponAttachName               = 0x1008
+
+DEATH & EFFECTS:
+  DeathEvent                              = 0x0FC8
+  RespawnFX                               = 0x0FD0
+  RespawnEvent                            = 0x0FD8
+  DropOnDeathObjectTemplateAsset          = 0x0FB8
+  DeathReactionTemplateAsset              = 0x11E0
+  DeathReactionObject                     = 0x11E8
+  AltDeathReactionTemplateAsset           = 0x11F0
+  AltDeathReactionObject                  = 0x11F8
+  DisconnectedBuff                        = 0x1408
+  DeadAndSettledRespawnData               = 0x1448
+
+OTHER:
+  NavpointComponentType                   = 0x0E30
+  NonPlayerCharacterIcon                  = 0x1290
+  OptimalRange                            = 0x11C0
+  HitConfirmEvent                         = 0x0E00
+  HitConfirmHeadshotEvent                 = 0x0E08
+  TargetingEvent                          = 0x0FE0
+  JumpFallDamageCurve                     = 0x0F68
+  JumpFallDamageTypeAsset                 = 0x0F70
+  AllyIconParticleSystem                  = 0x1238
+  ServerRewindComponent                   = 0x13E0
+  TransformRewinderComponent              = 0x13E8
+  CrouchRewinderComponent                 = 0x13F0
+  SkeletalPoseRewinderComponent           = 0x13F8
+  DefaultPrimitiveComponents              = 0x14B0
+  SettingsTrackerComponent                = 0x14E8
+
+DAMAGE TYPE MODIFIERS:
+  CharacterClassSlotModifiers             = 0x0EE0
+  CharacterClassCostModifiers             = 0x0EF0
+  CharacterClassDamageTypeModifiers       = 0x0F18
+
+INTANGIBLE/TANGIBLE RESPONSES:
+  IntangibleObjectType                    = 0x0CD8
+  TangibleCapsuleResponse                 = 0x0CD9
+  TangibleMeshResponse                    = 0x0CF9
+  IntangibleCapsuleResponse               = 0x0D19
+  IntangibleMeshResponse                  = 0x0D39
+
+PURCHASE CLASSES:
+  PurchasableClassAssets                  = 0x1188
+
+================================================================================
+IMPORTANT NOTES FOR HACKING/ESP
+================================================================================
+
+1. PRIMARY MESH FOR ESP: MeshCosmetic3P (0x0F40)
+   - This is the third-person cosmetic mesh visible to other players
+   - Use this offset to get the skeletal mesh component for bone-based ESP
+   - This is what you should be reading for drawing boxes around enemies
+
+2. DAMAGE HANDLER: DamageHandler (0x0C68)
+   - Contains health/damage information for the character
+   - Useful for determining if a character is alive or dead
+
+3. INVENTORY: Inventory (0x0C08)
+   - Contains equipped items and weapons
+   - Can be used to detect what weapon a player has
+
+4. ABILITIES & BUFFS: AbilitiesAndBuffs (0x0A20)
+   - Contains active ability states and buff information
+   - Useful for detecting which abilities are active
+
+5. VISION COMPONENT: VisionComponent (0x0A70)
+   - Controls what the character can see
+   - Useful for prediction and line-of-sight checks
+
+6. ANIMATION STATE: AnimationStateComponent (0x0390 - in animator)
+   - Contains current animation state
+   - Useful for detecting if character is shooting, reloading, etc.
+
+7. CAMERA SETTINGS: Camera3PSettings (0x126C)
+   - Contains third-person camera information
+   - Useful for calculating proper world-to-screen conversions
+
+================================================================================
+BONE INFORMATION
+================================================================================
+
+HeadDamageBoneNames (0x11A0)  - Names of bones in the head for damage calculation
+LegDamageBoneNames (0x11B0)   - Names of bones in the legs for damage calculation
+LeftHandFarBoneName (0x0FFC)  - Bone name for left hand far attachment
+RightHandWeaponAttachName (0x1008) - Attachment point for right-hand weapon
+
+These are useful for bone-based ESP rendering (head, chest, legs, etc.)
+
+================================================================================
+END OF DUMP
+================================================================================

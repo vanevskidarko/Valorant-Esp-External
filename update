@@ -1,0 +1,165 @@
+#define OFF_UWORLD 0xBDE72D0
+#define OFF_FNAMEPOOL 0xBF6E0C0
+#define OFF_PROCESSEVENT 0x1A4D0C0
+#define OFF_STATICFINDOBJECT 0x1A78380
+#define OFF_STATICLOADOBJECT 0x1A7BEB0
+#define OFF_TRIGGERVEH 0x165E746
+fnamepool: 0xBF6E0C0
+
+fname state: 0xC153880
+
+fname key: 0xC1538B8
+
+gworld: 0xBDE72D0
+ ShooterCharacterMinimapComponent; // 0x1558
+ 
+Changed: AShooterCharacter::BlindManagerComponent from 0xa18 to 0xa28
+Changed: AShooterCharacter::DamageHandler from 0xc58 to 0xc68
+Changed: AShooterCharacter::Inventory from 0xbf8 to 0xc08
+Changed: AShooterCharacter::Mesh1P from 0xef0 to 0xf30
+Changed: AShooterCharacter::Mesh1PMIDs from 0xf58 to 0xf98
+Changed: AShooterCharacter::Mesh1POverlayMIDs from 0xf68 to 0xfa8
+Changed: AShooterCharacter::Mesh3PMIDs from 0xf48 to 0xf88
+Changed: AShooterCharacter::MeshOverlay1P from 0xef8 to 0xf38
+Changed: AShooterCharacter::RightHandWeaponAttachName from 0xfc8 to 0x1008
+Changed: AShooterCharacter::WasAlly from 0xf19 to 0xf59
+Changed: AShooterCharacter::WasIntangible from 0xf14 to 0xf54
+Changed: AShooterCharacter::WasInvisible from 0xf13 to 0xf53
+Changed: UDamageableComponent::CachedLife from 0x1e0 to 0x200
+Changed: UDamageableComponent::DamageSections from 0x1c8 to 0x1e8
+Changed: UDamageableComponent::bAlive from 0x1d9 to 0x1f9
+Changed: UPlatformPlayer::AccountLevel from 0x734 to 0x73c
+Changed: UPlatformPlayer::CompetitiveTier from 0x738 to 0x740
+Changed: UPlatformPlayer::HideAccountLevel from 0x730 to 0x738
+
+
+newest from yesterday
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+uint64_t decrypt_xor_keys(const uint32_t key, const uint64_t* state)
+{
+    uint64_t hash = 0x2545F4914F6CDD1Dui64
+        * (key ^ ((key ^ (key >> 15)) >> 12) ^ (key << 25));
+ 
+    uint64_t idx = hash % 7;
+    uint64_t val = state[idx];
+    uint32_t hi = (uint32_t)(hash >> 32);
+    uint32_t mod7 = (uint32_t)idx;
+ 
+    if (mod7 == 0)
+    {
+        // ROR then subtract hi
+        uint8_t q = (uint8_t)(((int)hi - 1) / 0x3F);
+        uint8_t rshift = (uint8_t)hi - 63 * q;
+        uint8_t lshift = 63 * q - ((uint8_t)hi - 1) + 63;
+        val = ((val >> rshift) | (val << lshift)) - hi;
+    }
+    else if (mod7 == 1)
+    {
+        // ROL then add (hi + idx)
+        uint32_t rot = hi + 2 * (uint32_t)idx;
+        uint8_t lshift = (uint8_t)(rot % 0x3F) + 1;
+        uint8_t rshift = 63 * (uint8_t)(rot / 0x3F) - (uint8_t)hi - 2 * (uint8_t)idx + 63;
+        val = ((val << lshift) | (val >> rshift)) + (uint32_t)(hi + idx);
+    }
+    else if (mod7 == 3)
+    {
+        // NOT(ROR)
+        uint32_t rot = hi + 2 * (uint32_t)idx;
+        uint8_t rshift = (uint8_t)(rot % 0x3F) + 1;
+        uint8_t lshift = 63 * (uint8_t)(rot / 0x3F) - (uint8_t)hi - 2 * (uint8_t)idx + 63;
+        val = ~((val >> rshift) | (val << lshift));
+    }
+    else if (mod7 == 4)
+    {
+        // XOR with (hi + idx)
+        val = val ^ (uint32_t)(hi + idx);
+    }
+    else if (mod7 == 5)
+    {
+        // Single bit-swap then XOR with ~(hi + idx)
+        val = (val >> 1) ^ ~(uint64_t)(uint32_t)(hi + idx) ^ (((val >> 1) ^ (2 * val)) & 0xAAAAAAAAAAAAAAAAui64);
+    }
+ 
+ 
+    return val ^ key;
+}
+newest decrypt_xor_keys from yesterday's patch
+
+
+from 2 days ago
+
+ // Core Engine Offsets (Patch 12.01 - January 24, 2026)
+  inline std::ptrdiff_t uworld_pointer = 0xBBDD670;
+  inline std::ptrdiff_t game_instance = 0x01D8; // https://dumpspace.spuckwaffel.com/Games/?hash=10317b1a&type=classes&idx=UWorld&member=OwningGameInstance
+  inline std::ptrdiff_t gamestate = 0x178;
+  inline std::ptrdiff_t persistent_level = 0x0038;      // https://dumpspace.spuckwaffel.com/Games/?hash=10317b1a&type=classes&idx=UWorld&member=PersistentLevel
+  inline std::ptrdiff_t localplayers_array = 0x0040;    // https://dumpspace.spuckwaffel.com/Games/?hash=10317b1a&type=classes&idx=UGameInstance&member=LocalPlayers
+  inline std::ptrdiff_t localplayer = 0x0040;           // https://dumpspace.spuckwaffel.com/Games/?hash=10317b1a&type=classes&idx=UGameInstance&member=LocalPlayers
+  inline std::ptrdiff_t player_controller = 0x0038;     // https://dumpspace.spuckwaffel.com/Games/?hash=10317b1a&type=classes&idx=UPlayer&member=PlayerController
+  inline std::ptrdiff_t player_camera_manager = 0x0520; // https://dumpspace.spuckwaffel.com/Games/?hash=10317b1a&type=classes&idx=APlayerController&member=PlayerCameraManager
+  inline std::ptrdiff_t camera_private = 0x17B0;
+  inline std::ptrdiff_t control_rotation = 0x04E0; // https://dumpspace.spuckwaffel.com/Games/?hash=10317b1a&type=classes&idx=AController&member=ControlRotation
+ 
+  // Component/Attachment
+  inline std::ptrdiff_t attach_children = 0x1A0;       // USceneComponent
+  inline std::ptrdiff_t attach_children_count = 0x1A8; // USceneComponent
+ 
+  // Player/Pawn Related
+  inline std::ptrdiff_t acknowledge_pawn = 0x0510;   // https://dumpspace.spuckwaffel.com/Games/?hash=10317b1a&type=classes&idx=APlayerController&member=AcknowledgedPawn
+  inline std::ptrdiff_t apawn = 0x0510;              // https://dumpspace.spuckwaffel.com/Games/?hash=10317b1a&type=classes&idx=APlayerController&member=AcknowledgedPawn
+  inline std::ptrdiff_t player_state = 0x0478;       // https://dumpspace.spuckwaffel.com/Games/?hash=10317b1a&type=classes&idx=AGameStateBase&member=PlayerArray
+  inline std::ptrdiff_t player_state_array = 0x0478; // https://dumpspace.spuckwaffel.com/Games/?hash=10317b1a&type=classes&idx=AGameStateBase&member=PlayerArray
+  inline std::ptrdiff_t spawned_character = 0x0A18;  // AShooterCharacter
+  inline std::ptrdiff_t root_component = 0x0288;     // https://dumpspace.spuckwaffel.com/Games/?hash=10317b1a&type=classes&idx=AActor&member=RootComponent
+  inline std::ptrdiff_t root_position = 0x0170;
+ 
+  // Health/Damage
+  inline std::ptrdiff_t damage_handler = 0xC78; // https://dumpspace.spuckwaffel.com/Games/?hash=10317b1a&type=classes&idx=AShooterCharacter&member=DamageHandler
+  inline std::ptrdiff_t health = 0x01E0;
+  inline std::ptrdiff_t damagesections = 0x1c8; // https://dumpspace.spuckwaffel.com/Games/?hash=10317b1a&type=classes&idx=UDamageableComponent&member=DamageSections
+ 
+  // Mesh/Rendering
+  inline std::ptrdiff_t mesh = 0x0EF8; // Mesh3P
+  inline std::ptrdiff_t component_to_world = 0x02D0;
+  inline std::ptrdiff_t BoundsScale = 0x0474;
+  inline std::ptrdiff_t bone_array = 0x0730;
+  inline std::ptrdiff_t bone_array_cache = 0x0740;
+  inline std::ptrdiff_t bone_count = 0x05D0;
+  inline std::ptrdiff_t last_submit_time = 0x478;
+  inline std::ptrdiff_t last_render_time = 0x47C;
+  inline std::ptrdiff_t relative_location = 0x0170; // https://dumpspace.spuckwaffel.com/Games/?hash=10317b1a&type=classes&idx=USceneComponent&member=RelativeLocation
+  inline std::ptrdiff_t relative_rotation = 0x0188; // https://dumpspace.spuckwaffel.com/Games/?hash=10317b1a&type=classes&idx=USceneComponent&member=RelativeRotation
+ 
+  // Team Related
+  inline std::ptrdiff_t team_component = 0x06A8; // (prob) https://dumpspace.spuckwaffel.com/Games/?hash=10317b1a&type=classes&idx=AAresPlayerStateBase&member=TeamComponent
+  inline std::ptrdiff_t team_id = 0x00E8;
+  inline std::ptrdiff_t was_ally = 0x0F19; // https://dumpspace.spuckwaffel.com/Games/?hash=10317b1a&type=classes&idx=AShooterCharacter&member=WasAlly
+ 
+  // Actor Management
+  inline std::ptrdiff_t actor_array =
+      0xA0; // (uncertain) https://dumpspace.spuckwaffel.com/Games/?hash=10317b1a&type=structs&idx=FGameplayAbilityTargetData_ActorArray&member=TargetActorArray
+  inline std::ptrdiff_t actors_count = 0xA8;
+  inline std::ptrdiff_t actor_id = 0x18;
+  inline std::ptrdiff_t unique_id = 0x38;
+ 
+  // Game Constants
+  inline int32_t player_unique_id = 18743553;
+}

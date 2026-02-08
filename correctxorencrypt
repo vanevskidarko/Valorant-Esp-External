@@ -1,0 +1,55 @@
+uint64_t decrypt_xor_keys(const uint32_t key, const uint64_t* state)
+{
+    uint64_t hash = 0x2545F4914F6CDD1Dui64
+        * (key ^ ((key ^ (key >> 15)) >> 12) ^ (key << 25));
+ 
+    uint64_t idx = hash % 7;
+    uint64_t val = state[idx];
+    uint32_t hi = (uint32_t)(hash >> 32);
+    uint32_t mod7 = (uint32_t)idx;
+ 
+    if (mod7 == 0)
+    {
+        // ROR then subtract hi
+        uint8_t q = (uint8_t)(((int)hi - 1) / 0x3F);
+        uint8_t rshift = (uint8_t)hi - 63 * q;
+        uint8_t lshift = 63 * q - ((uint8_t)hi - 1) + 63;
+        val = ((val >> rshift) | (val << lshift)) - hi;
+    }
+    else if (mod7 == 1)
+    {
+        // ROL then add (hi + idx)
+        uint32_t rot = hi + 2 * (uint32_t)idx;
+        uint8_t lshift = (uint8_t)(rot % 0x3F) + 1;
+        uint8_t rshift = 63 * (uint8_t)(rot / 0x3F) - (uint8_t)hi - 2 * (uint8_t)idx + 63;
+        val = ((val << lshift) | (val >> rshift)) + (uint32_t)(hi + idx);
+    }
+    else if (mod7 == 3)
+    {
+        // NOT(ROR)
+        uint32_t rot = hi + 2 * (uint32_t)idx;
+        uint8_t rshift = (uint8_t)(rot % 0x3F) + 1;
+        uint8_t lshift = 63 * (uint8_t)(rot / 0x3F) - (uint8_t)hi - 2 * (uint8_t)idx + 63;
+        val = ~((val >> rshift) | (val << lshift));
+    }
+    else if (mod7 == 4)
+    {
+        // XOR with (hi + idx)
+        val = val ^ (uint32_t)(hi + idx);
+    }
+    else if (mod7 == 5)
+    {
+        // Single bit-swap then XOR with ~(hi + idx)
+        val = (val >> 1) ^ ~(uint64_t)(uint32_t)(hi + idx) ^ (((val >> 1) ^ (2 * val)) & 0xAAAAAAAAAAAAAAAAui64);
+    }
+ 
+ 
+    return val ^ key;
+}
+fnamepool: 0xBF6E0C0
+
+fname state: 0xC153880
+
+fname key: 0xC1538B8
+
+gworld: 0xBDE72D0
